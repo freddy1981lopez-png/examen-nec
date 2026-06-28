@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Examen PSI — NEC Knowledge</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --red: #c0392b; --green: #27ae60; --blue: #2471a3;
+    --dark: #1a1a2e; --gray: #f0f2f5; --mid: #7f8c8d;
+    --white: #ffffff; --radius: 14px; --shadow: 0 4px 20px rgba(0,0,0,0.10);
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--gray); color: var(--dark); min-height: 100vh; padding-bottom: 30px; }
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* START */
+  #start-screen { min-height: 100vh; background: linear-gradient(160deg, var(--dark) 0%, #16213e 60%, #0f3460 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 24px; text-align: center; }
+  #start-screen.active { display: flex; }
+  .logo-badge { width: 80px; height: 80px; border-radius: 20px; background: var(--red); display: flex; align-items: center; justify-content: center; font-size: 36px; margin-bottom: 20px; box-shadow: 0 8px 24px rgba(192,57,43,0.4); }
+  .start-title { font-size: 26px; font-weight: 800; color: var(--white); line-height: 1.15; margin-bottom: 6px; }
+  .start-sub { font-size: 13px; color: rgba(255,255,255,0.55); margin-bottom: 28px; line-height: 1.5; }
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 340px; margin-bottom: 24px; }
+  .info-card { background: rgba(255,255,255,0.08); border-radius: 12px; padding: 14px 10px; text-align: center; }
+  .info-card .num { font-size: 24px; font-weight: 800; color: var(--white); }
+  .info-card .lbl { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 2px; }
+  .topic-selector { width: 100%; max-width: 340px; margin-bottom: 24px; background: rgba(255,255,255,0.07); border-radius: 14px; padding: 14px; }
+  .topic-selector h3 { font-size: 11px; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+  .topic-btn { display: flex; align-items: center; gap: 10px; background: transparent; border: none; color: var(--white); width: 100%; padding: 8px 0; font-size: 13px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .topic-btn:last-child { border-bottom: none; }
+  .topic-btn input[type=checkbox] { accent-color: var(--red); width: 16px; height: 16px; }
+  .topic-btn .badge { margin-left: auto; font-size: 10px; background: rgba(255,255,255,0.12); border-radius: 6px; padding: 2px 7px; color: rgba(255,255,255,0.55); }
+  .btn-start { width: 100%; max-width: 340px; padding: 18px; background: var(--red); color: var(--white); border: none; border-radius: var(--radius); font-size: 17px; font-weight: 700; cursor: pointer; box-shadow: 0 6px 20px rgba(192,57,43,0.4); }
+  .btn-start:active { transform: scale(0.97); }
+
+  /* EXAM */
+  #exam-screen.active { display: flex; flex-direction: column; min-height: 100vh; }
+  .exam-header { background: var(--dark); padding: 14px 20px 12px; position: sticky; top: 0; z-index: 10; }
+  .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .q-counter { font-size: 13px; color: rgba(255,255,255,0.5); font-weight: 500; }
+  .q-counter span { color: var(--white); font-weight: 700; }
+  .timer-pill { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.1); border-radius: 20px; padding: 5px 12px; font-size: 14px; font-weight: 700; color: var(--white); }
+  .timer-pill.warning { background: rgba(192,57,43,0.3); color: #ff6b6b; }
+  .timer-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+  .timer-pill.warning .timer-dot { background: #ff6b6b; animation: blink 0.8s infinite; }
+  @keyframes blink { 0%,100%{opacity:1}50%{opacity:0} }
+  .progress-bar { height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--red); border-radius: 2px; transition: width 0.4s ease; }
+  .topic-tag { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.35); padding: 6px 20px 0; background: var(--dark); }
+  .exam-body { flex: 1; padding: 16px 16px 100px; }
+  .question-card { background: var(--white); border-radius: var(--radius); padding: 18px; margin-bottom: 14px; box-shadow: var(--shadow); }
+  .question-text { font-size: 15px; line-height: 1.55; font-weight: 600; color: var(--dark); }
+  .options-list { display: flex; flex-direction: column; gap: 9px; }
+  .option-btn { display: flex; align-items: flex-start; gap: 11px; background: var(--white); border: 2px solid #e8eaed; border-radius: 12px; padding: 13px 13px; cursor: pointer; text-align: left; width: 100%; transition: border-color 0.15s, background 0.15s; }
+  .option-btn:active { transform: scale(0.985); }
+  .opt-letter { min-width: 28px; height: 28px; border-radius: 8px; background: var(--gray); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--mid); flex-shrink: 0; margin-top: 1px; }
+  .opt-text { font-size: 14px; line-height: 1.45; color: var(--dark); }
+  .option-btn.correct { border-color: var(--green); background: #eafaf1; }
+  .option-btn.correct .opt-letter { background: var(--green); color: var(--white); }
+  .option-btn.wrong { border-color: var(--red); background: #fdedec; }
+  .option-btn.wrong .opt-letter { background: var(--red); color: var(--white); }
+  .option-btn:disabled { cursor: default; }
+  .feedback-box { border-radius: 12px; padding: 13px 15px; margin-top: 13px; display: none; font-size: 13px; line-height: 1.5; }
+  .feedback-box.correct { background: #eafaf1; border-left: 4px solid var(--green); color: #1e8449; }
+  .feedback-box.wrong { background: #fdedec; border-left: 4px solid var(--red); color: #922b21; }
+  .feedback-box .fb-title { font-weight: 700; margin-bottom: 4px; font-size: 14px; }
+  .feedback-box .fb-ref { margin-top: 5px; font-size: 11px; opacity: 0.7; font-style: italic; }
+  .exam-footer { position: fixed; bottom: 0; left: 0; right: 0; background: var(--white); padding: 14px 16px; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); display: flex; gap: 10px; }
+  .btn-skip { flex: 1; padding: 15px; background: var(--gray); border: none; border-radius: 12px; font-size: 15px; font-weight: 600; color: var(--mid); cursor: pointer; }
+  .btn-next { flex: 2; padding: 15px; background: var(--red); border: none; border-radius: 12px; font-size: 15px; font-weight: 700; color: var(--white); cursor: pointer; opacity: 0.4; pointer-events: none; transition: opacity 0.2s; }
+  .btn-next.active { opacity: 1; pointer-events: all; }
+
+  /* RESULTS */
+  #result-screen { padding: 20px 16px; }
+  #result-screen.active { display: block; }
+  .result-header { background: var(--dark); border-radius: 20px; padding: 26px 22px; text-align: center; margin-bottom: 18px; color: var(--white); }
+  .result-icon { font-size: 52px; margin-bottom: 10px; }
+  .result-title { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+  .result-score { font-size: 50px; font-weight: 900; margin: 8px 0 4px; }
+  .result-score .denom { font-size: 22px; font-weight: 500; opacity: 0.6; }
+  .result-pct { font-size: 15px; opacity: 0.7; }
+  .result-pct span { font-weight: 700; opacity: 1; }
+  .section-breakdown { background: var(--white); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); margin-bottom: 18px; }
+  .section-row { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--gray); }
+  .section-row:last-child { border-bottom: none; }
+  .section-name { flex: 1; font-size: 12px; font-weight: 500; line-height: 1.3; }
+  .section-score { font-size: 13px; font-weight: 700; min-width: 42px; text-align: right; }
+  .section-bar-wrap { width: 55px; height: 6px; background: var(--gray); border-radius: 3px; overflow: hidden; }
+  .section-bar { height: 100%; border-radius: 3px; }
+  .review-list { margin-bottom: 18px; }
+  .review-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--mid); margin-bottom: 10px; padding: 0 2px; }
+  .review-card { background: var(--white); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; box-shadow: var(--shadow); border-left: 4px solid var(--red); }
+  .review-card.correct-card { border-left-color: var(--green); }
+  .review-q { font-size: 13px; font-weight: 600; margin-bottom: 7px; line-height: 1.4; }
+  .review-ans { font-size: 12px; line-height: 1.4; }
+  .review-ans .label { font-weight: 700; }
+  .review-exp { font-size: 12px; color: var(--blue); margin-top: 6px; line-height: 1.4; background: #eaf4fb; border-radius: 8px; padding: 7px 9px; }
+  .btn-restart { width: 100%; padding: 17px; background: var(--red); color: var(--white); border: none; border-radius: var(--radius); font-size: 16px; font-weight: 700; cursor: pointer; margin-bottom: 10px; box-shadow: 0 6px 20px rgba(192,57,43,0.3); }
+  .btn-menu { width: 100%; padding: 14px; background: var(--white); color: var(--dark); border: 2px solid #e8eaed; border-radius: var(--radius); font-size: 15px; font-weight: 600; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<div id="start-screen" class="screen active">
+  <div class="logo-badge">⚡</div>
+  <div class="start-title">Examen PSI<br>NEC Knowledge</div>
+  <div class="start-sub">TX Journeyman Electrician<br>Respuesta inmediata · Temporizado · 100 preguntas</div>
+  <div class="info-grid">
+    <div class="info-card"><div class="num" id="q-count-display">100</div><div class="lbl">Preguntas</div></div>
+    <div class="info-card"><div class="num">90s</div><div class="lbl">Por pregunta</div></div>
+    <div class="info-card"><div class="num">71%</div><div class="lbl">Para pasar</div></div>
+    <div class="info-card"><div class="num">NEC<br><span style="font-size:13px">2023</span></div><div class="lbl">Edicion</div></div>
+  </div>
+  <div class="topic-selector">
+    <h3>Selecciona temas</h3>
+    <label class="topic-btn"><input type="checkbox" class="topic-check" value="DEF" checked> Definitions & Theory <span class="badge" id="cnt-DEF">12</span></label>
+    <label class="topic-btn"><input type="checkbox" class="topic-check" value="BC" checked> Branch Circuits <span class="badge" id="cnt-BC">22</span></label>
+    <label class="topic-btn"><input type="checkbox" class="topic-check" value="SVC" checked> Electrical Services <span class="badge" id="cnt-SVC">18</span></label>
+    <label class="topic-btn"><input type="checkbox" class="topic-check" value="FEED" checked> Feeders <span class="badge" id="cnt-FEED">10</span></label>
+    <label class="topic-btn"><input type="checkbox" class="topic-check" value="MOT" checked> Motors & Generators <span class="badge" id="cnt-MOT">14</span></label>
+    <label class="topic-btn"><input type="checkbox" class="topic-check" value="WM" checked> Wiring Methods <span class="badge" id="cnt-WM">14</span></label>
+    <label class="topic-btn"><input type="checkbox" class="topic-check" value="EQP" checked> Equipment & Devices <span class="badge" id="cnt-EQP">10</span></label>
+  </div>
+  <button class="btn-start" onclick="startExam()">Comenzar Examen ⚡</button>
+</div>
+
+<div id="exam-screen" class="screen">
+  <div class="exam-header">
+    <div class="header-top">
+      <div class="q-counter">Pregunta <span id="q-num">1</span> de <span id="q-total">100</span></div>
+      <div class="timer-pill" id="timer-pill"><div class="timer-dot"></div><span id="timer-display">1:30</span></div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+  </div>
+  <div class="topic-tag" id="topic-tag"></div>
+  <div class="exam-body">
+    <div class="question-card"><div class="question-text" id="question-text"></div></div>
+    <div class="options-list" id="options-list"></div>
+    <div class="feedback-box" id="feedback-box">
+      <div class="fb-title" id="fb-title"></div>
+      <div id="fb-exp"></div>
+      <div class="fb-ref" id="fb-ref"></div>
+    </div>
+  </div>
+  <div class="exam-footer">
+    <button class="btn-skip" onclick="skipQuestion()">Saltar</button>
+    <button class="btn-next" id="btn-next" onclick="nextQuestion()">Siguiente →</button>
+  </div>
+</div>
+
+<div id="result-screen" class="screen">
+  <div class="result-header">
+    <div class="result-icon" id="result-icon">🎯</div>
+    <div class="result-title" id="result-title">Resultado</div>
+    <div class="result-score"><span id="result-correct">0</span><span class="denom"> / <span id="result-total">100</span></span></div>
+    <div class="result-pct">Porcentaje: <span id="result-pct-val">0%</span></div>
+  </div>
+  <div class="section-breakdown" id="section-breakdown"></div>
+  <div class="review-list"><div class="review-title">Revision de respuestas</div><div id="review-cards"></div></div>
+  <button class="btn-restart" onclick="restartSame()">🔄 Repetir examen (orden diferente)</button>
+  <button class="btn-menu" onclick="goMenu()">← Volver al menu</button>
+</div>
+
+<script>
+const ALL_QUESTIONS = [
+// ══ DEFINITIONS (12) ══
+{topic:"DEF",topicName:"Definitions & Theory",q:"La 'ampacity' de un conductor se define como la corriente maxima que puede cargar sin exceder _____.",opts:["Su caida de voltaje permitida","Su punto de fusion","Su temperatura nominal","Su voltaje nominal"],ans:2,exp:"Ampacity = maximo sin exceder temperatura nominal del conductor.",ref:"NEC Art. 100"},
+{topic:"DEF",topicName:"Definitions & Theory",q:"Una 'carga continua' segun el NEC es aquella donde la corriente maxima se espera por AL MENOS _____.",opts:["Una hora","Dos horas","Tres horas","Cuatro horas"],ans:2,exp:"Continuous Load = 3 horas o mas. Los conductores y OCPD se dimensionan al 125%.",ref:"NEC Art. 100"},
+{topic:"DEF",topicName:"Definitions & Theory",q:"Ohm's Law relaciona _____.",opts:["Voltaje, corriente y potencia","Voltaje, corriente y resistencia","Voltaje, corriente y watts","Voltaje, corriente y factor de potencia"],ans:1,exp:"E = I x R. Voltaje = Corriente x Resistencia.",ref:"Principio basico"},
+{topic:"DEF",topicName:"Definitions & Theory",q:"Un 'Grounded Conductor' es _____.",opts:["El conductor verde de tierra fisica (EGC)","El conductor de puesta a tierra del equipo","El conductor conectado intencionalmente a tierra (neutral)","El conductor del electrodo de tierra (GEC)"],ans:2,exp:"Grounded Conductor = NEUTRAL. NO confundir con EGC (verde) ni con GEC.",ref:"NEC Art. 100"},
+{topic:"DEF",topicName:"Definitions & Theory",q:"Las locations Class III son peligrosas por la presencia de _____.",opts:["Vapores de liquidos inflamables","Polvos combustibles","Fibras o pelusa facilmente inflamables","Gases inflamables"],ans:2,exp:"Class I = gases/vapores. Class II = polvos. Class III = fibras/pelusa (textiles, aserraderos).",ref:"NEC Art. 500"},
+{topic:"DEF",topicName:"Definitions & Theory",q:"Las locations Class I son peligrosas por la presencia de _____.",opts:["Fibras inflamables","Polvos combustibles","Vapores o gases inflamables","Liquidos corrosivos"],ans:2,exp:"Class I = gases o vapores inflamables (gasolineras, plantas de gas propano).",ref:"NEC Art. 500.5(B)"},
+{topic:"DEF",topicName:"Definitions & Theory",q:"El cumplimiento del NEC resulta en una instalacion electrica que es esencialmente _____.",opts:["Libre de peligros","Un buen sistema electrico","Un sistema eficiente","Todo lo anterior"],ans:0,exp:"NEC Art. 90.1(B): El cumplimiento del NEC resulta en una instalacion libre de peligros, pero no necesariamente eficiente, conveniente o adecuada para expansion futura.",ref:"NEC Art. 90.1(B)"},
+{topic:"DEF",topicName:"Definitions & Theory",q:"Equipo incluido en una lista publicada por una organizacion aceptable a la autoridad y encontrado adecuado para un proposito especifico, es definido como _____.",opts:["Etiquetado (labeled)","Identificado (identified)","Listado (listed)","Aprobado (approved)"],ans:2,exp:"'Listed' significa que el equipo fue probado y encontrado adecuado por una organizacion reconocida (UL, ETL, etc.).",ref:"NEC Art. 100"},
+{topic:"DEF",topicName:"Definitions & Theory",q:"El sistema de bonding jumper que conecta el conductor puesto a tierra con el EGC en un sistema derivado separado (SDS) se llama _____.",opts:["Equipment bonding jumper","Main bonding jumper","System bonding jumper","Supply-side bonding jumper"],ans:2,exp:"El system bonding jumper es la conexion entre el grounded conductor y el EGC en un SDS (como un transformador).",ref:"NEC Art. 100"},
+{topic:"DEF",topicName:"Definitions & Theory",q:"Los conductores de calibre 12 AWG requieren proteccion de sobrecorriente de NO mas de _____.",opts:["15 amperes","20 amperes","25 amperes","30 amperes"],ans:1,exp:"Art. 240.4(D)(5): El calibre 12 AWG requiere OCPD de maximo 20A. Independientemente del tipo de aislamiento o voltaje.",ref:"NEC Art. 240.4(D)(5)"},
+{topic:"DEF",topicName:"Definitions & Theory",q:"Un GFCI es un dispositivo destinado a _____.",opts:["Prevenir la sobrecarga de conductores","Proteger los breakers de sobrecargas","Proteger dispositivos de sobrecargas","Proteccion del personal"],ans:3,exp:"Art. 100: Un GFCI es un dispositivo PARA PROTECCION DEL PERSONAL que desenergi­za el circuito cuando detecta una falla a tierra.",ref:"NEC Art. 100"},
+{topic:"DEF",topicName:"Definitions & Theory",q:"Los tamanos de conductores en el NEC se expresan en American Wire Gauge (AWG) o en _____.",opts:["International Standard Gauge","Centimetros circulares","Mils circulares (kcmil)","Diametro circular"],ans:2,exp:"Art. 110.6: Los calibres de conductores se expresan en AWG o en mils circulares (kcmil para calibres grandes).",ref:"NEC Art. 110.6"},
+
+// ══ BRANCH CIRCUITS (22) ══
+{topic:"BC",topicName:"Branch Circuits",q:"Un circuito ramal con conductores #12 AWG protegido por un breaker de 15A es un circuito ramal de _____ amperes.",opts:["20 amperes","25 amperes","15 amperes","10 amperes"],ans:2,exp:"Art. 210.3: La clasificacion la determina el OCPD, no el conductor. El breaker de 15A clasifica el circuito.",ref:"NEC Art. 210.3"},
+{topic:"BC",topicName:"Branch Circuits",q:"Los receptaculos de uso general en edificios comerciales se calculan a un MINIMO de _____ VA por salida.",opts:["100 VA","120 VA","150 VA","180 VA"],ans:3,exp:"Art. 220.14(I): 180 VA por receptaculo en edificios comerciales.",ref:"NEC Art. 220.14(I)"},
+{topic:"BC",topicName:"Branch Circuits",q:"Cuando la ampacidad calculada de un conductor es 75 amperes, el MAXIMO tamano estandar del OCPD permitido es _____.",opts:["70 amperes","75 amperes","80 amperes","85 amperes"],ans:2,exp:"Art. 240.4(B): Si la ampacidad no corresponde a tamano estandar, se puede subir al siguiente. 75A no es estandar — el siguiente es 80A.",ref:"NEC Art. 240.4(B)"},
+{topic:"BC",topicName:"Branch Circuits",q:"Los receptaculos en cocinas de edificios comerciales deben estar protegidos por _____.",opts:["AFCI","GFCI","Breakers de doble polo","Fusibles tipo S"],ans:1,exp:"Art. 210.8(B)(2): TODOS los receptaculos 125V, 15 o 20A en cocinas comerciales requieren GFCI.",ref:"NEC Art. 210.8(B)(2)"},
+{topic:"BC",topicName:"Branch Circuits",q:"Los conductores del circuito ramal de un calentador de agua de almacenamiento de 120 galones o menos deben tener ampacidad de NO menos del _____ de la FLA.",opts:["80 percent","100 percent","125 percent","150 percent"],ans:2,exp:"Art. 422.13: El calentador de agua se trata como carga continua — conductores al 125% de su FLA.",ref:"NEC Art. 422.13"},
+{topic:"BC",topicName:"Branch Circuits",q:"En cuartos de huespedes de hoteles y moteles se requiere un MINIMO de _____ receptaculo(s) accesible(s).",opts:["Uno","Dos","Tres","Todos"],ans:1,exp:"Art. 210.60(B): Se requieren AL MENOS DOS receptaculos facilmente accesibles en habitaciones de hotel/motel/dormitorio.",ref:"NEC Art. 210.60(B)"},
+{topic:"BC",topicName:"Branch Circuits",q:"Un circuito ramal con conductores #14 AWG y breaker de 15A que alimenta tres receptaculos duplex de 20A _____.",opts:["Cumple si el conductor fuera #12 AWG","Cumple si el breaker fuera de 20A","NO cumple — los receptaculos deben ser de 15A","SI cumple con el NEC"],ans:2,exp:"Tabla 210.21(B)(3): En un circuito de 15A con conductores #14, los receptaculos deben ser de 15A, no de 20A.",ref:"NEC Tabla 210.21(B)(3)"},
+{topic:"BC",topicName:"Branch Circuits",q:"El MAXIMO calibre de cable tipo NM (Romex) para uso en interiores es calibre _____.",opts:["6 AWG","4 AWG","2 AWG","2/0 AWG"],ans:2,exp:"Art. 334.104: El cable NM esta disponible del 14 AWG hasta el 2 AWG. No se permite en calibres mayores.",ref:"NEC Art. 334.104"},
+{topic:"BC",topicName:"Branch Circuits",q:"Los pisos calefactados en banos, cocinas y areas de hidromasaje deben estar _____.",opts:["Protegidos por GFCI","Protegidos por AFCI","Conectados a tierra solamente","Aislados"],ans:0,exp:"Art. 424.44(G): Los sistemas de calefaccion de piso en banos, cocinas y areas de hidromasaje requieren GFCI.",ref:"NEC Art. 424.44(G)"},
+{topic:"BC",topicName:"Branch Circuits",q:"Donde un circuito de 20A alimenta una salida unica (single receptacle), la clasificacion del receptaculo debe ser de NO menos de _____.",opts:["10 amperes","15 amperes","16 amperes","20 amperes"],ans:3,exp:"Art. 210.21(B)(1): Un receptaculo de salida unica debe tener clasificacion igual a la del circuito.",ref:"NEC Art. 210.21(B)(1)"},
+{topic:"BC",topicName:"Branch Circuits",q:"Los conductores de ramas que alimentan cargas continuas, como luminarias en oficinas, deben tener ampacidad de NO menos de _____ de la carga.",opts:["115 percent","125 percent","150 percent","80 percent"],ans:1,exp:"Art. 210.19(A)(1): Los conductores de circuitos que alimentan cargas continuas deben ser al menos 125% de la carga.",ref:"NEC Art. 210.19(A)(1)"},
+{topic:"BC",topicName:"Branch Circuits",q:"Receptaculos de 125V, 15 y 20A instalados dentro de _____ del borde de una fuente decorativa requieren GFCI.",opts:["10 pies","15 pies","20 pies","25 pies"],ans:2,exp:"Art. 680.58: Todos los receptaculos 125V, 15 y 20A dentro de 20 pies del borde de una fuente decorativa requieren GFCI.",ref:"NEC Art. 680.58"},
+{topic:"BC",topicName:"Branch Circuits",q:"En pasillos de viviendas de _____ o mas, debe haber al menos un receptaculo de 125V de uso general.",opts:["10 pies","20 pies","25 pies","30 pies"],ans:0,exp:"Art. 210.52(H): Pasillos de 10 pies (3 metros) o mas en viviendas deben tener al menos un receptaculo de uso general.",ref:"NEC Art. 210.52(H)"},
+{topic:"BC",topicName:"Branch Circuits",q:"Todos los receptaculos de 125V, 15 y 20A en TODAS las siguientes ubicaciones de viviendas requieren GFCI, EXCEPTO _____.",opts:["Garajes","Banos","Pasillos","Exteriores"],ans:2,exp:"Art. 210.8(A): Los pasillos de viviendas NO requieren GFCI. Garajes, banos y exteriores si lo requieren.",ref:"NEC Art. 210.8(A)"},
+{topic:"BC",topicName:"Branch Circuits",q:"El MAXIMO numero de receptaculos de 125V, uso general, que pueden protegerse con un breaker de 20A en una ocupacion comercial es _____.",opts:["18","15","13","10"],ans:2,exp:"220.14(I): 180 VA por receptaculo. 120V x 20A = 2400 VA. 2400 / 180 = 13 receptaculos.",ref:"NEC Art. 220.14(I)"},
+{topic:"BC",topicName:"Branch Circuits",q:"El MAXIMO voltaje permitido entre conductores de circuitos ramal que alimentan luminarias en residencias y cuartos de hotel es _____.",opts:["120 voltios","150 voltios","240 voltios","277 voltios"],ans:0,exp:"Art. 210.6(A)(1): El maximo voltaje para luminarias en viviendas y cuartos de hotel es 120V para reducir el riesgo de electrocucion.",ref:"NEC Art. 210.6(A)(1)"},
+{topic:"BC",topicName:"Branch Circuits",q:"Circuitos que alimentan sistemas de iluminacion de contorno con luminarias incandescentes deben tener una clasificacion NO mayor de _____.",opts:["15 amperes","20 amperes","30 amperes","50 amperes"],ans:1,exp:"Art. 600.5(B)(2): Los circuitos ramal que alimentan sistemas de outline lighting no incandescentes de neon no deben exceder 20 amperes.",ref:"NEC Art. 600.5(B)(2)"},
+{topic:"BC",topicName:"Branch Circuits",q:"En viviendas, cualquier espacio de pared de _____ o mas de ancho debe tener un receptaculo de uso general.",opts:["2 pies","4 pies","6 pies","10 pies"],ans:0,exp:"Art. 210.52(A)(2)(1): Cualquier espacio de pared de 2 pies (60 cm) o mas debe tener un receptaculo para eliminar el uso de extensiones.",ref:"NEC Art. 210.52(A)(2)(1)"},
+{topic:"BC",topicName:"Branch Circuits",q:"Un receptaculo instalado en la sala de lavanderia de una vivienda para la lavadora debe estar dentro de AL MENOS _____ de la ubicacion prevista del electrodomestico.",opts:["6 pies","4 pies","3 pies","10 pies"],ans:0,exp:"Art. 210.50(C): El receptaculo de la lavadora debe estar a no mas de 6 pies de la ubicacion prevista del electrodomestico.",ref:"NEC Art. 210.50(C)"},
+{topic:"BC",topicName:"Branch Circuits",q:"El equipo de tecnologia de informacion puede conectarse a un circuito ramal por medio de un cable flexible de una longitud NO mayor de _____.",opts:["10 pies","15 pies","12 pies","20 pies"],ans:1,exp:"Art. 645.5(B)(1): Los cables de alimentacion de equipo IT tienen una longitud maxima limitada de 15 pies.",ref:"NEC Art. 645.5(B)(1)"},
+{topic:"BC",topicName:"Branch Circuits",q:"Los aparatos domesticos con elementos de calefaccion superficial con una demanda maxima de mas de _____ deben tener su suministro subdividido en dos o mas circuitos.",opts:["60 amperes","50 amperes","40 amperes","30 amperes"],ans:0,exp:"Art. 422.11(B): Los aparatos con elementos de calefaccion superficial con demanda mayor de 60A deben subdividirse para minimizar el riesgo de incendio.",ref:"NEC Art. 422.11(B)"},
+{topic:"BC",topicName:"Branch Circuits",q:"El MAXIMO tamano de OCPD para la proteccion de equipo electrico de calefaccion de espacio tipo resistencia es _____.",opts:["30 amperes","40 amperes","48 amperes","60 amperes"],ans:3,exp:"Art. 424.22(B): La proteccion de sobrecorriente para equipo de calefaccion tipo resistencia no debe exceder 60A.",ref:"NEC Art. 424.22(B)"},
+
+// ══ ELECTRICAL SERVICES (18) ══
+{topic:"SVC",topicName:"Electrical Services",q:"El medio de desconexion de servicio debe consistir de NO mas de _____ interruptores o breakers.",opts:["Uno","Dos","Cuatro","Seis"],ans:3,exp:"Art. 230.71(A): Maximo SEIS (6) medios de desconexion por servicio.",ref:"NEC Art. 230.71(A)"},
+{topic:"SVC",topicName:"Electrical Services",q:"Los conductores de servicio abiertos deben tener clearance de NO menos de _____ desde ventanas que se abren.",opts:["6 pies","8 pies","5 pies","3 pies"],ans:3,exp:"Art. 230.9(A): Minimo 3 pies de clearance desde ventanas que abran, porches, puertas y balcones.",ref:"NEC Art. 230.9(A)"},
+{topic:"SVC",topicName:"Electrical Services",q:"Un main bonding jumper conecta el conductor puesto a tierra al _____.",opts:["Cada enclosure del desconectador de servicio","Solo al medidor","Al electrodo de tierra","Todos los subpaneles"],ans:0,exp:"Art. 250.28: El MBJ conecta el neutral al enclosure del desconectador de servicio. SOLO en el panel de servicio, no en subpaneles.",ref:"NEC Art. 250.28"},
+{topic:"SVC",topicName:"Electrical Services",q:"Los servicios trifasicos, 4 hilos, 480Y/277V requieren GFP cuando el desconectador es de AL MENOS _____.",opts:["400 amperes","600 amperes","1,000 amperes","1,500 amperes"],ans:2,exp:"Art. 230.95: GFPE requerido en servicios 480Y/277V con desconectador de 1000A o mas.",ref:"NEC Art. 230.95"},
+{topic:"SVC",topicName:"Electrical Services",q:"Los electrodos de puesta a tierra hechos de tubo o conduit NO deben ser menores de _____ de tamano comercial.",opts:["1/2 in.","3/4 in.","1 in.","1-1/2 in."],ans:1,exp:"Art. 250.52(A)(4): Electrodos tipo tubo/conduit minimo 3/4 pulgada y minimo 8 pies de profundidad.",ref:"NEC Art. 250.52(A)(4)"},
+{topic:"SVC",topicName:"Electrical Services",q:"Las placas de electrodo de puesta a tierra deben instalarse a NO menos de _____ bajo la superficie de la tierra.",opts:["12 pulgadas","18 pulgadas","24 pulgadas","30 pulgadas"],ans:2,exp:"Art. 250.52(A)(7): Las placas de electrodo deben estar a minimo 24 pulgadas (2 pies) de profundidad.",ref:"NEC Art. 250.52(A)(7)"},
+{topic:"SVC",topicName:"Electrical Services",q:"Para un sistema de CA que opera a menos de 1000V, el main bonding jumper debe conectar el conductor puesto a tierra al _____.",opts:["Cada enclosure del desconectador de servicio","Solo al medidor","Al electrodo de tierra","Todos los sub-paneles"],ans:0,exp:"Art. 250.24(C): El grounded conductor debe ser conectado al equipo de servicio y bondeado al enclosure.",ref:"NEC Art. 250.24(C)"},
+{topic:"SVC",topicName:"Electrical Services",q:"Un electrodo tipo varilla de tierra (ground rod) debe ser impulsado a una profundidad MINIMA de _____ en la tierra.",opts:["4 pies","6 pies","8 pies","10 pies"],ans:2,exp:"Art. 250.53(G): Los electrodos tipo varilla o tubo deben tener al menos 8 pies de longitud en contacto con el suelo.",ref:"NEC Art. 250.53(G)"},
+{topic:"SVC",topicName:"Electrical Services",q:"Cuando se encuentre roca solida al clavar una varilla de tierra, la varilla puede enterrarse en una zanja de AL MENOS _____ de profundidad.",opts:["3 pies","4 pies","24 pulgadas","30 pulgadas"],ans:3,exp:"Art. 250.53(G): Si se encuentra roca, la varilla puede enterrarse en zanja de 2.5 pies (30 pulgadas) de profundidad.",ref:"NEC Art. 250.53(G)"},
+{topic:"SVC",topicName:"Electrical Services",q:"Donde se instalan multiples varillas de tierra, NO deben estar a menos de _____ de cualquier otro electrodo.",opts:["Dos pies","Cuatro pies","Seis pies","Ocho pies"],ans:2,exp:"Art. 250.53(B): Las varillas de tierra deben estar separadas al menos 6 pies entre si para ser efectivas.",ref:"NEC Art. 250.53(B)"},
+{topic:"SVC",topicName:"Electrical Services",q:"El MINIMO tamano del conductor de tierra de cobre requerido donde un servicio tiene cuatro (4) juegos paralelos de conductores de 500 kcmil aluminio es _____.",opts:["3/0 AWG","4/0 AWG","250 kcmil","2/0 AWG"],ans:0,exp:"Art. 250.66 + Tabla: 4 x 500 kcmil Al = 2000 kcmil total. Para Al mayor de 1750 kcmil, GEC = 3/0 AWG Cu.",ref:"NEC Art. 250.66 + Tabla"},
+{topic:"SVC",topicName:"Electrical Services",q:"El conductor neutral NO debe conectarse a ninguna terminal de manera que _____ la polaridad designada.",opts:["Cambie","Invierta","Energice","Ponga a tierra"],ans:1,exp:"Art. 200.11: El conductor neutral no debe conectarse de manera que invierta la polaridad designada — crea peligro de electrocucion.",ref:"NEC Art. 200.11"},
+{topic:"SVC",topicName:"Electrical Services",q:"La proteccion de puesta a tierra de equipo (EGP) NO es un dispositivo de proteccion contra _____.",opts:["Fallas fase a tierra en el lado de carga","Sobrecargas en los conductores de servicio","Corrientes de falla a tierra menores al trip del breaker","Danos al equipo por falla a tierra"],ans:1,exp:"Art. 230.95: El GFP protege el equipo de fallas a tierra de baja magnitud, no protege los conductores de sobrecarga.",ref:"NEC Art. 230.95"},
+{topic:"SVC",topicName:"Electrical Services",q:"Los conductores de puesta a tierra de aluminio NO deben terminarse dentro de _____ de la tierra cuando se usan al exterior.",opts:["18 pulgadas","24 pulgadas","30 pulgadas","36 pulgadas"],ans:0,exp:"Art. 250.64(A): Los GEC de aluminio en exteriores no pueden terminarse a menos de 18 pulgadas de la tierra para evitar corrosion.",ref:"NEC Art. 250.64(A)"},
+{topic:"SVC",topicName:"Electrical Services",q:"En un sistema delta de 4 hilos, el conductor con el voltaje mas alto a tierra (high-leg) debe identificarse con color _____.",opts:["Blanco","Rojo","Verde","Naranja"],ans:3,exp:"Art. 110.15: El high-leg (pata alta) del sistema delta de 4 hilos debe identificarse con color NARANJA.",ref:"NEC Art. 110.15"},
+{topic:"SVC",topicName:"Electrical Services",q:"El servicio de acometida de una residencia debe tener una altura minima sobre el nivel del suelo de _____ donde el voltaje no excede 150V a tierra.",opts:["8 pies","10 pies","12 pies","15 pies"],ans:1,exp:"Art. 230.24(B)(1): La acometida aerea debe tener un clearance minimo de 10 pies sobre el nivel del suelo.",ref:"NEC Art. 230.24(B)(1)"},
+{topic:"SVC",topicName:"Electrical Services",q:"El equipo de servicio de una casa movil (mobile home) debe tener una clasificacion de NO menos de _____, 120/240V monofasico.",opts:["50 amperes","60 amperes","100 amperes","150 amperes"],ans:2,exp:"Art. 550.32(C): El equipo de servicio de casas moviles debe ser de al menos 100A a 120/240V monofasico.",ref:"NEC Art. 550.32(C)"},
+{topic:"SVC",topicName:"Electrical Services",q:"Un bonding jumper de comunicaciones entre el electrodo de tierra de comunicaciones y el sistema de tierra electrico debe ser NO menor de calibre _____ cobre.",opts:["8 AWG","6 AWG","12 AWG","10 AWG"],ans:1,exp:"Art. 800.100(D): El bonding jumper entre el electrodo de tierra de comunicaciones y el sistema de tierra electrico debe ser minimo 6 AWG.",ref:"NEC Art. 800.100(D)"},
+
+// ══ FEEDERS (10) ══
+{topic:"FEED",topicName:"Electrical Feeders",q:"Cuando un feeder alimenta una carga continua de 240 amperes, el OCPD debe tener una clasificacion de AL MENOS _____.",opts:["240 amperes","300 amperes","250 amperes","275 amperes"],ans:1,exp:"Art. 215.3: Para cargas continuas, el OCPD del feeder debe ser AL MENOS 125% de la carga. 240A x 125% = 300A.",ref:"NEC Art. 215.3"},
+{topic:"FEED",topicName:"Electrical Feeders",q:"Cuando se terminan conductores #14 AWG a #1 AWG en breakers, se considera temperatura nominal de _____.",opts:["86 grados F","90 grados C","75 grados C","60 grados C"],ans:3,exp:"Art. 110.14(C)(1): Terminaciones de 100A o menos con conductores 14-1 AWG se consideran a 60C. Usa columna 60C de Tabla 310.15(B)(16).",ref:"NEC Art. 110.14(C)(1)"},
+{topic:"FEED",topicName:"Electrical Feeders",q:"En una pull box con conductores #4 AWG o mayores, para un jalon recto, el largo de la caja debe ser NO menos de _____ veces el diametro del conduit mas grande.",opts:["Seis","Cuatro","Ocho","Doce"],ans:2,exp:"Art. 314.28(A)(1): Para jalones rectos, largo minimo = 8 veces el diametro del conduit mas grande. Para angulos = 6 veces.",ref:"NEC Art. 314.28(A)(1)"},
+{topic:"FEED",topicName:"Electrical Feeders",q:"Los conductores de feeder que alimentan cargas continuas de 240A deben tener una ampacidad de AL MENOS _____.",opts:["192 amperes","240 amperes","300 amperes","276 amperes"],ans:2,exp:"Art. 215.2(A)(1): Los conductores de feeder deben tener ampacidad de al menos 125% de la carga continua. 240A x 125% = 300A.",ref:"NEC Art. 215.2(A)(1)"},
+{topic:"FEED",topicName:"Electrical Feeders",q:"Donde se hacen tap de feeder de 20 pies, la ampacidad de los conductores del tap (150A) define el MAXIMO tamano del OCPD del que se toma como _____.",opts:["100 amperes","300 amperes","400 amperes","450 amperes"],ans:3,exp:"Art. 240.21(B)(2)(1): Los conductores del tap (150A) deben tener ampacidad de al menos 1/3 del OCPD del feeder. 150A x 3 = 450A maximo.",ref:"NEC Art. 240.21(B)(2)(1)"},
+{topic:"FEED",topicName:"Electrical Feeders",q:"Los conductores instalados en paralelo deben ser (I) la misma longitud y (II) el mismo calibre. Segun el NEC _____.",opts:["Solo I","Solo II","Ambos I y II","Ninguno de los dos"],ans:2,exp:"Art. 310.10(H)(2): Los conductores en paralelo deben ser la misma longitud, mismo calibre, mismo material, mismo tipo de aislamiento y mismas terminaciones.",ref:"NEC Art. 310.10(H)(2)"},
+{topic:"FEED",topicName:"Electrical Feeders",q:"En cajas de union con cualquier dimension mayor de _____, todos los conductores deben estar cableados o apilados en forma aprobada.",opts:["2 pies","3 pies","5 pies","6 pies"],ans:3,exp:"Art. 314.28(B): En cajas de union con dimension mayor de 6 pies, todos los conductores deben estar organizados en forma aprobada.",ref:"NEC Art. 314.28(B)"},
+{topic:"FEED",topicName:"Electrical Feeders",q:"Determine la ampacidad de conductores de 500 kcmil THWN cobre, 8 conductores portadores de corriente, temperatura ambiente 125F.",opts:["178.2 amperes","199.5 amperes","294.6 amperes","380.0 amperes"],ans:0,exp:"Tabla 310.15(B)(16): 500 kcmil THWN Cu = 380A base. Factor temperatura 125F (51.7C) con 75C = 0.67. Factor 8 conductores = 0.70. 380 x 0.67 x 0.70 = 178.22A.",ref:"NEC Tabla 310.15(B)(16)"},
+{topic:"FEED",topicName:"Electrical Feeders",q:"La ampacidad de cada conductor #12 AWG a 75C donde tres conductores portadores de corriente estan en un raceway con temperatura ambiente de 125F es _____.",opts:["16.75 amperes","18.75 amperes","20.25 amperes","15.0 amperes"],ans:0,exp:"Tabla 310.15(B)(16): #12 AWG a 75C = 25A base. Factor temperatura 125F = 0.67. 25 x 0.67 = 16.75A.",ref:"NEC Tabla 310.15(B)(16)"},
+{topic:"FEED",topicName:"Electrical Feeders",q:"Donde una acometida (feeder) de CA de NO mas de 600V pasa sobre una entrada de vehiculos publica, debe tener una distancia minima de _____ sobre el nivel terminado.",opts:["10 pies","15 pies","18 pies","20 pies"],ans:2,exp:"Art. 225.18(4): Los conductores a no mas de 600V sobre entradas de vehiculos publicas deben tener clearance minimo de 18 pies.",ref:"NEC Art. 225.18(4)"},
+
+// ══ MOTORS (14) ══
+{topic:"MOT",topicName:"Motors & Generators",q:"Para dimensionar los conductores del circuito ramal de un motor trifasico de servicio continuo, se usan los valores de _____.",opts:["La placa de datos del motor","Tabla 430.248","Tabla 430.52","Tabla 430.250"],ans:3,exp:"Art. 430.6(A)(1) + 430.22: Para motores trifasicos usa Tabla 430.250. Para monofasicos, Tabla 430.248. El nameplate SOLO para overloads.",ref:"NEC Art. 430.6 + 430.22"},
+{topic:"MOT",topicName:"Motors & Generators",q:"Un motor trifasico, 50 HP, 208 voltios, jaula de ardilla tiene una FLA de _____.",opts:["130 amperes","143 amperes","162 amperes","195 amperes"],ans:1,exp:"Tabla 430.250: Motor trifasico, 50 HP, 208V = 143A.",ref:"NEC Tabla 430.250"},
+{topic:"MOT",topicName:"Motors & Generators",q:"Todos los motores deben considerarse como _____ a menos que la naturaleza del equipo indique lo contrario.",opts:["Servicio continuo","Servicio de tiempo corto","Servicio intermitente","Servicio periodico"],ans:0,exp:"Art. 430.22(A): El NEC asume servicio continuo por defecto — por eso los conductores se dimensionan al 125%.",ref:"NEC Art. 430.22(A)"},
+{topic:"MOT",topicName:"Motors & Generators",q:"El controlador/desconectador del motor debe abrir todos los conductores _____ del motor.",opts:["Neutros","Puestos a tierra (grounded)","De puesta a tierra (EGC)","Sin puesta a tierra (ungrounded)"],ans:3,exp:"Art. 430.84: El desconectador abre SOLO los conductores energizados (ungrounded). No interrumpe el neutral ni el EGC.",ref:"NEC Art. 430.84"},
+{topic:"MOT",topicName:"Motors & Generators",q:"Un motor trifasico de 30 HP, 480 voltios, rotor devanado tiene una FLA de _____.",opts:["27 amperes","32 amperes","40 amperes","50 amperes"],ans:2,exp:"Tabla 430.250: Motor trifasico, 30 HP, 460-480V = 40A.",ref:"NEC Tabla 430.250"},
+{topic:"MOT",topicName:"Motors & Generators",q:"El uso del nameplate del motor es para dimensionar _____.",opts:["Los conductores del circuito ramal","El OCPD del circuito ramal","Los overloads (proteccion de sobrecarga)","El desconectador del motor"],ans:2,exp:"Art. 430.6(A)(2): El FLA del nameplate se usa SOLO para dimensionar los dispositivos de sobrecarga (overloads).",ref:"NEC Art. 430.6(A)(2)"},
+{topic:"MOT",topicName:"Motors & Generators",q:"Los conductores del circuito ramal de un motor de CA de servicio continuo deben tener ampacidad de AL MENOS _____ del FLC de tabla.",opts:["100 percent","115 percent","125 percent","150 percent"],ans:2,exp:"Art. 430.22: Los conductores del circuito ramal del motor deben ser al menos 125% del FLC de la tabla NEC.",ref:"NEC Art. 430.22"},
+{topic:"MOT",topicName:"Motors & Generators",q:"Donde el breaker sirve como controlador del motor y el motor NO esta a la vista, el NEC requiere que _____.",opts:["El motor sea de menos de 2 HP","El breaker pueda bloquearse en posicion abierta","El motor tenga letra de codigo E","El breaker tenga 25,000 AIC"],ans:1,exp:"Art. 430.102(B) Exception: El desconectador puede estar fuera de vista del motor si puede bloquearse (lockout/tagout) en posicion abierta.",ref:"NEC Art. 430.102(B)"},
+{topic:"MOT",topicName:"Motors & Generators",q:"Los conductores de un feeder que alimenta tres motores (FLC: 10A, 20A, 30A) deben tener ampacidad de AL MENOS _____.",opts:["60.0 amperes","75.0 amperes","67.5 amperes","90.0 amperes"],ans:2,exp:"Art. 430.24: 125% del mas grande (30A x 1.25 = 37.5A) + 100% de los demas (20A + 10A = 30A). Total = 67.5A.",ref:"NEC Art. 430.24"},
+{topic:"MOT",topicName:"Motors & Generators",q:"El desconectador del motor para circuitos de 600V o menos debe tener ampacidad de AL MENOS _____ del FLC del motor.",opts:["100 percent","115 percent","125 percent","150 percent"],ans:1,exp:"Art. 430.110(A): El desconectador del motor debe tener ampacidad de al menos 115% del FLC del motor.",ref:"NEC Art. 430.110(A)"},
+{topic:"MOT",topicName:"Motors & Generators",q:"La ampacidad de los conductores de fase desde los terminales del generador hasta el primer OCPD debe ser NO menos de _____ de la corriente nominal en placa.",opts:["100 percent","115 percent","125 percent","150 percent"],ans:1,exp:"Art. 445.13: Los conductores desde terminales del generador hasta el primer OCPD deben ser al menos 115% de la corriente nominal del generador.",ref:"NEC Art. 445.13"},
+{topic:"MOT",topicName:"Motors & Generators",q:"Para motores de mas de 1 HP con temperatura de elevacion de 50C en la placa, el dispositivo de sobrecarga debe seleccionarse para disparar a NO mas de _____ del FLA de placa.",opts:["100 percent","115 percent","125 percent","130 percent"],ans:1,exp:"Art. 430.32(A)(1): Motores con temperatura de elevacion mayor de 40C usan 115% del FLA de placa para el overload.",ref:"NEC Art. 430.32(A)(1)"},
+{topic:"MOT",topicName:"Motors & Generators",q:"Un generador standby monofasico de 15 kVA, 240V puede cargarse a un MAXIMO de _____ por linea.",opts:["62.50 amperes","31.25 amperes","41.66 amperes","52.50 amperes"],ans:0,exp:"I = P / E = 15,000 / 240 = 62.5A por linea.",ref:"Formula I = P / E"},
+{topic:"MOT",topicName:"Motors & Generators",q:"El MINIMO tamano de conductor EGC para un circuito ramal de 50 amperes es _____.",opts:["12 AWG","10 AWG","8 AWG","6 AWG"],ans:1,exp:"Art. 250.122 + Tabla 250.122: Para OCPD de 50A, el EGC minimo es #10 AWG cobre.",ref:"NEC Tabla 250.122"},
+
+// ══ WIRING METHODS (14) ══
+{topic:"WM",topicName:"Wiring Methods & Materials",q:"Los niples de conduit de NO mas de 24 pulgadas pueden llenarse hasta un MAXIMO de _____ de su area transversal.",opts:["30 percent","40 percent","54 percent","60 percent"],ans:3,exp:"Chapter 9 Note 4: Niples de 24 pulgadas o menos = hasta 60%. Conduits normales (mas de 24 in.) con mas de 2 conductores = 40%.",ref:"NEC Chapter 9, Note 4"},
+{topic:"WM",topicName:"Wiring Methods & Materials",q:"El conduit PVC rigido Schedule 40 de 2 pulgadas debe soportarse AL MENOS cada _____.",opts:["3 pies","5 pies","6 pies","8 pies"],ans:1,exp:"Tabla 352.30(B): PVC rigido Schedule 40 de 2 pulgadas = soporte cada 5 pies.",ref:"NEC Tabla 352.30(B)"},
+{topic:"WM",topicName:"Wiring Methods & Materials",q:"El LFMC debe sujetarse firmemente DENTRO de _____ de cada caja u otra terminacion.",opts:["4-1/2 pies","3 pies","12 pulgadas","18 pulgadas"],ans:2,exp:"Art. 350.30(A): El LFMC debe asegurarse dentro de las 12 pulgadas de cada caja o terminacion.",ref:"NEC Art. 350.30(A)"},
+{topic:"WM",topicName:"Wiring Methods & Materials",q:"En un conduit subterraneo entre puntos de jalado, el MAXIMO numero de curvas permitidas es _____.",opts:["Cuatro (4) de 90 grados","Seis (6) de 90 grados","Cuatro (4) de 120 grados","Dos (2) de 90 grados"],ans:0,exp:"Art. 352.26: Maximo 360 grados total de curvas entre puntos de acceso = cuatro curvas de 90 grados.",ref:"NEC Art. 352.26"},
+{topic:"WM",topicName:"Wiring Methods & Materials",q:"El MAXIMO porcentaje del area transversal de un wireway metalico que pueden ocupar conductores y empalmes es _____.",opts:["20 percent","30 percent","40 percent","75 percent"],ans:3,exp:"Art. 376.22(B): En wireways metalicos, conductores + empalmes no pueden exceder el 75% del area transversal.",ref:"NEC Art. 376.22(B)"},
+{topic:"WM",topicName:"Wiring Methods & Materials",q:"El FMC de 3/8 pulgada para conexion de luminarias se permite si la longitud NO excede _____.",opts:["3 pies","4 pies","6 pies","8 pies"],ans:2,exp:"Art. 348.20(A) Exception No.1: FMC de 3/8 pulgada para conductores tap a luminarias, maximo 6 pies de longitud.",ref:"NEC Art. 348.20(A)"},
+{topic:"WM",topicName:"Wiring Methods & Materials",q:"Los conductores directamente enterrados emergiendo a nivel de suelo deben protegerse con raceway o cubierta hasta AL MENOS _____ sobre el nivel terminado.",opts:["8 pies","10 pies","12 pies","15 pies"],ans:0,exp:"Art. 300.5(D)(1): Los conductores directamente enterrados emergiendo del subsuelo deben protegerse hasta 8 pies de altura sobre el nivel terminado.",ref:"NEC Art. 300.5(D)(1)"},
+{topic:"WM",topicName:"Wiring Methods & Materials",q:"El EMT debe sujetarse firmemente dentro de _____ de cada caja de union, tablero u otra terminacion.",opts:["3 pies","6 pies","8 pies","10 pies"],ans:0,exp:"Art. 358.30(A): El EMT debe asegurarse dentro de 3 pies de cada caja, tablero u otra terminacion de conduit.",ref:"NEC Art. 358.30(A)"},
+{topic:"WM",topicName:"Wiring Methods & Materials",q:"El cable MI (mineral insulated) debe soportarse a intervalos NO mayores de _____.",opts:["2 pies","4 pies","6 pies","10 pies"],ans:2,exp:"Art. 332.30: El cable MI debe soportarse a intervalos no mayores de 6 pies para asegurar un soporte adecuado.",ref:"NEC Art. 332.30"},
+{topic:"WM",topicName:"Wiring Methods & Materials",q:"El cableado NM (Romex) donde pasa a traves del piso debe estar encerrado en un conduit aprobado que se extienda AL MENOS _____ sobre el piso.",opts:["6 pulgadas","8 pulgadas","12 pulgadas","16 pulgadas"],ans:0,exp:"Art. 334.15(B): El cable NM expuesto al pasar por el piso debe protegerse con conduit hasta 6 pulgadas de altura sobre el piso.",ref:"NEC Art. 334.15(B)"},
+{topic:"WM",topicName:"Wiring Methods & Materials",q:"El LFMC NO debe usarse _____.",opts:["En longitudes mayores de 6 pies","En trabajo oculto","En ubicaciones peligrosas","Donde este sujeto a dano fisico"],ans:3,exp:"Art. 350.12(1): El LFMC no esta disenado para uso donde este sujeto a dano fisico.",ref:"NEC Art. 350.12(1)"},
+{topic:"WM",topicName:"Wiring Methods & Materials",q:"Para determinar el fill de conductores en una caja de dispositivos, un switch simple y/o un switch de 3 vias se cuenta igual a _____ conductor(es).",opts:["Cero","Uno","Dos","Tres"],ans:2,exp:"Art. 314.16(B)(4): Los switches y receptaculos montados en una sola strap cuentan como dos (2) conductores basado en el calibre mas grande.",ref:"NEC Art. 314.16(B)(4)"},
+{topic:"WM",topicName:"Wiring Methods & Materials",q:"En areas interiores donde las paredes se lavan frecuentemente, el conduit metalico y tableros deben montarse con un espacio MINIMO de _____ entre la pared y el equipo.",opts:["3/4 in.","1/2 in.","1/8 in.","1/4 in."],ans:3,exp:"Art. 300.6(D): En lavanderias y car washes, el equipo metalico expuesto debe tener al menos 1/4 de pulgada de espacio airspace de la pared.",ref:"NEC Art. 300.6(D)"},
+{topic:"WM",topicName:"Wiring Methods & Materials",q:"El cable NM (Romex) debe soportarse a intervalos NO mayores de _____.",opts:["3 pies","4-1/2 pies","6 pies","5 pies"],ans:1,exp:"Art. 334.30: El cable NM debe soportarse a intervalos no mayores de 4-1/2 pies (54 pulgadas).",ref:"NEC Art. 334.30"},
+
+// ══ EQUIPMENT & DEVICES (10) ══
+{topic:"EQP",topicName:"Equipment & Devices",q:"Todos los receptaculos no bloqueables de 125V, 15 y 20A en centros de cuidado infantil deben ser _____.",opts:["Protegidos por GFCI","Protegidos por AFCI","Tanto GFCI como AFCI","Resistentes a manipulacion (tamper-resistant)"],ans:3,exp:"Art. 406.14: En centros de cuidado infantil, todos los receptaculos no bloqueables deben ser del tipo resistente a manipulacion para proteger a los ninos.",ref:"NEC Art. 406.14"},
+{topic:"EQP",topicName:"Equipment & Devices",q:"Un marcador aceptable para el polo de tierra en un receptaculo con tierra es _____.",opts:["Tornillo hexagonal verde","Un punto naranja","Tornillo redondo blanco","Tornillo hexagonal naranja"],ans:0,exp:"Art. 406.10(B)(1): El polo de tierra en receptaculos se identifica con un tornillo hexagonal o de cabeza hexagonal de color VERDE.",ref:"NEC Art. 406.10(B)(1)"},
+{topic:"EQP",topicName:"Equipment & Devices",q:"Los switches de 3 y 4 vias deben cablearse de manera que toda la conmutacion se haga _____.",opts:["Solo en el conductor puesto a tierra","Solo en el conductor sin conexion a tierra","En cualquier conductor","Solo en el conductor blanco"],ans:1,exp:"Art. 404.2(A): Toda la conmutacion debe hacerse SOLO en el conductor sin conexion a tierra (ungrounded/hot). Nunca en el neutral.",ref:"NEC Art. 404.2(A)"},
+{topic:"EQP",topicName:"Equipment & Devices",q:"El equipo listado o etiquetado debe instalarse _____.",opts:["Como el contratista determine mejor","De acuerdo con las instrucciones de la lista/etiqueta","Solo en ambientes industriales","Segun lo determine el contratista"],ans:1,exp:"Art. 110.3(B): El equipo listado o etiquetado debe instalarse y usarse de acuerdo con las instrucciones incluidas en la lista o etiqueta.",ref:"NEC Art. 110.3(B)"},
+{topic:"EQP",topicName:"Equipment & Devices",q:"Los breakers de _____ o menos y 600V o menos deben tener su clasificacion en amperes moldeada, estampada o marcada en sus manijas.",opts:["600 amperes","200 amperes","400 amperes","100 amperes"],ans:3,exp:"Art. 240.83(B): Los breakers de 100A o menos deben tener la clasificacion en amperes marcada en la manija o area de escudo.",ref:"NEC Art. 240.83(B)"},
+{topic:"EQP",topicName:"Equipment & Devices",q:"En una 2-gang box con dos switches de polo simple, a menos que tenga barreras instaladas permanentemente, el voltaje entre switches NO debe exceder _____.",opts:["120 voltios","277 voltios","480 voltios","240 voltios"],ans:1,exp:"Art. 404.8(B): Sin barreras, el voltaje entre dispositivos adyacentes en la misma caja no debe exceder 300V. Se permiten hasta 277V entre fases en sistemas 480Y/277V.",ref:"NEC Art. 404.8(B)"},
+{topic:"EQP",topicName:"Equipment & Devices",q:"Los receptaculos con conductor de tierra aislado para reduccion de ruido electrico se identifican con _____ en la cara del receptaculo.",opts:["Un punto rojo","Un punto naranja","Una cara sonriente amarilla","Un triangulo naranja"],ans:3,exp:"Art. 406.3(D): Los receptaculos con tierra aislada se identifican con un triangulo naranja en la cara del receptaculo.",ref:"NEC Art. 406.3(D)"},
+{topic:"EQP",topicName:"Equipment & Devices",q:"Cual de los siguientes NO es una clasificacion estandar de OCPD segun el NEC?",opts:["75 amperes","90 amperes","35 amperes","110 amperes"],ans:0,exp:"Art. 240.6(A): Los tamanos estandar de OCPD incluyen: 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100... El 75A NO es estandar.",ref:"NEC Art. 240.6(A)"},
+{topic:"EQP",topicName:"Equipment & Devices",q:"Los conductores de puesta a tierra y bonding jumpers NO deben conectarse con _____.",opts:["Soldadura exotermica","Conectores de presion","Tornillos de maquina","Tornillos de lamina metalica"],ans:3,exp:"Art. 300.6(D): Los tornillos de lamina metalica (sheet metal screws) NO son un metodo aceptable para conectar conductores de tierra y bonding jumpers.",ref:"NEC Art. 300.6(D)"},
+{topic:"EQP",topicName:"Equipment & Devices",q:"El MAXIMO numero de veces que el conductor del electrodo de tierra puede empalmarse con conectores de split-bolt es _____.",opts:["Una vez","Dos veces","Tres veces","Ninguna"],ans:3,exp:"Art. 250.64(C)(1): El GEC NO puede empalmarse con split-bolt connectors. Solo se permite soldadura exotermica o conectores de compresion irreversibles.",ref:"NEC Art. 250.64(C)(1)"}
+];
+
+// ── STATE ──
+let examQuestions=[], currentIdx=0, answered=false, userAnswers=[], timerInterval=null, timeLeft=90;
+const SECS=90;
+
+function getTopics(){ return [...document.querySelectorAll('.topic-check:checked')].map(c=>c.value); }
+
+function startExam(){
+  const topics=getTopics();
+  if(!topics.length){alert('Selecciona al menos un tema');return;}
+  examQuestions=ALL_QUESTIONS.filter(q=>topics.includes(q.topic)).sort(()=>Math.random()-0.5);
+  document.getElementById('q-total').textContent=examQuestions.length;
+  currentIdx=0; userAnswers=[];
+  showScreen('exam-screen');
+  loadQuestion();
+}
+
+function loadQuestion(){
+  answered=false; timeLeft=SECS; clearInterval(timerInterval);
+  const q=examQuestions[currentIdx];
+  document.getElementById('q-num').textContent=currentIdx+1;
+  document.getElementById('question-text').textContent=q.q;
+  document.getElementById('topic-tag').textContent=q.topicName;
+  document.getElementById('progress-fill').style.width=((currentIdx/examQuestions.length)*100)+'%';
+  const opts=document.getElementById('options-list');
+  opts.innerHTML='';
+  ['A','B','C','D'].forEach((l,i)=>{
+    const btn=document.createElement('button');
+    btn.className='option-btn';
+    btn.innerHTML=`<span class="opt-letter">${l}</span><span class="opt-text">${q.opts[i]}</span>`;
+    btn.onclick=()=>selectOption(i,btn);
+    opts.appendChild(btn);
+  });
+  const fb=document.getElementById('feedback-box');
+  fb.style.display='none'; fb.className='feedback-box';
+  const bn=document.getElementById('btn-next');
+  bn.classList.remove('active');
+  bn.textContent=currentIdx<examQuestions.length-1?'Siguiente →':'Ver Resultados';
+  updateTimer();
+  timerInterval=setInterval(()=>{timeLeft--;updateTimer();if(timeLeft<=0){clearInterval(timerInterval);if(!answered)timeOut();}},1000);
+}
+
+function updateTimer(){
+  const m=Math.floor(timeLeft/60),s=timeLeft%60;
+  document.getElementById('timer-display').textContent=m+':'+(s<10?'0':'')+s;
+  const pill=document.getElementById('timer-pill');
+  timeLeft<=15?pill.classList.add('warning'):pill.classList.remove('warning');
+}
+
+function selectOption(idx,btn){
+  if(answered)return;
+  answered=true; clearInterval(timerInterval);
+  const q=examQuestions[currentIdx];
+  const correct=idx===q.ans;
+  document.querySelectorAll('.option-btn').forEach((b,i)=>{
+    b.disabled=true;
+    if(i===q.ans)b.classList.add('correct');
+    else if(i===idx&&!correct)b.classList.add('wrong');
+  });
+  userAnswers[currentIdx]={chosen:idx,correct};
+  const fb=document.getElementById('feedback-box');
+  fb.style.display='block';
+  fb.className='feedback-box '+(correct?'correct':'wrong');
+  document.getElementById('fb-title').textContent=correct?'✓ Correcto!':'✗ Incorrecto';
+  document.getElementById('fb-exp').textContent=q.exp;
+  document.getElementById('fb-ref').textContent=q.ref;
+  document.getElementById('btn-next').classList.add('active');
+}
+
+function timeOut(){
+  answered=true;
+  const q=examQuestions[currentIdx];
+  document.querySelectorAll('.option-btn').forEach((b,i)=>{b.disabled=true;if(i===q.ans)b.classList.add('correct');});
+  userAnswers[currentIdx]={chosen:-1,correct:false};
+  const fb=document.getElementById('feedback-box');
+  fb.style.display='block'; fb.className='feedback-box wrong';
+  document.getElementById('fb-title').textContent='⏱ Tiempo agotado';
+  document.getElementById('fb-exp').textContent=examQuestions[currentIdx].exp;
+  document.getElementById('fb-ref').textContent=examQuestions[currentIdx].ref;
+  document.getElementById('btn-next').classList.add('active');
+}
+
+function skipQuestion(){
+  if(answered){nextQuestion();return;}
+  clearInterval(timerInterval);
+  userAnswers[currentIdx]={chosen:-1,correct:false};
+  nextQuestion();
+}
+
+function nextQuestion(){
+  clearInterval(timerInterval);
+  if(currentIdx<examQuestions.length-1){currentIdx++;loadQuestion();}
+  else showResults();
+}
+
+function showResults(){
+  showScreen('result-screen');
+  const total=examQuestions.length;
+  const correct=userAnswers.filter(a=>a&&a.correct).length;
+  const pct=Math.round((correct/total)*100);
+  const pass=pct>=71;
+  document.getElementById('result-icon').textContent=pass?'🏆':'📚';
+  document.getElementById('result-title').textContent=pass?'¡APROBADO!':'Sigue Estudiando';
+  document.getElementById('result-correct').textContent=correct;
+  document.getElementById('result-total').textContent=total;
+  document.getElementById('result-pct-val').innerHTML=`<span style="color:${pass?'#27ae60':'#c0392b'}">${pct}%</span>`;
+  const topics={};
+  examQuestions.forEach((q,i)=>{
+    if(!topics[q.topicName])topics[q.topicName]={total:0,correct:0};
+    topics[q.topicName].total++;
+    if(userAnswers[i]&&userAnswers[i].correct)topics[q.topicName].correct++;
+  });
+  const bd=document.getElementById('section-breakdown');
+  bd.innerHTML='';
+  Object.entries(topics).forEach(([name,data])=>{
+    const p=Math.round((data.correct/data.total)*100);
+    const color=p>=70?'#27ae60':p>=50?'#e67e22':'#c0392b';
+    bd.innerHTML+=`<div class="section-row"><div class="section-name">${name}</div><div class="section-bar-wrap"><div class="section-bar" style="width:${p}%;background:${color}"></div></div><div class="section-score" style="color:${color}">${data.correct}/${data.total}</div></div>`;
+  });
+  const rc=document.getElementById('review-cards');
+  rc.innerHTML='';
+  const L=['A','B','C','D'];
+  examQuestions.forEach((q,i)=>{
+    const ua=userAnswers[i];
+    const ok=ua&&ua.correct;
+    rc.innerHTML+=`<div class="review-card ${ok?'correct-card':''}"><div class="review-q">${i+1}. ${q.q}</div><div class="review-ans"><span class="label" style="color:${ok?'#27ae60':'#c0392b'}">Tu resp: ${ua&&ua.chosen>=0?L[ua.chosen]+'. '+q.opts[ua.chosen]:'Sin responder'}</span>${!ok?`<br><span class="label" style="color:#27ae60">Correcta: ${L[q.ans]}. ${q.opts[q.ans]}</span>`:''}</div><div class="review-exp">${q.exp} — <em>${q.ref}</em></div></div>`;
+  });
+}
+
+function restartSame(){
+  examQuestions=examQuestions.sort(()=>Math.random()-0.5);
+  currentIdx=0; userAnswers=[];
+  showScreen('exam-screen'); loadQuestion();
+}
+
+function goMenu(){ clearInterval(timerInterval); showScreen('start-screen'); updateCount(); }
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function updateCount(){
+  const topics=getTopics();
+  const cnt=ALL_QUESTIONS.filter(q=>topics.includes(q.topic)).length;
+  document.getElementById('q-count-display').textContent=cnt;
+}
+
+document.querySelectorAll('.topic-check').forEach(c=>c.addEventListener('change',updateCount));
+</script>
+</body>
+</html>
