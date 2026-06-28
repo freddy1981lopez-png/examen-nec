@@ -105,9 +105,9 @@
 <div id="start-screen" class="screen active">
   <div class="logo-badge">⚡</div>
   <div class="start-title">Examen PSI<br>NEC Knowledge</div>
-  <div class="start-sub">TX Journeyman Electrician<br>Respuesta inmediata · Temporizado · 100 preguntas</div>
+  <div class="start-sub">TX Journeyman Electrician<br>Respuesta inmediata · Temporizado</div>
   <div class="info-grid">
-    <div class="info-card"><div class="num" id="q-count-display">100</div><div class="lbl">Preguntas</div></div>
+    <div class="info-card"><div class="num" id="q-count-display">25</div><div class="lbl">Preguntas</div></div>
     <div class="info-card"><div class="num">90s</div><div class="lbl">Por pregunta</div></div>
     <div class="info-card"><div class="num">71%</div><div class="lbl">Para pasar</div></div>
     <div class="info-card"><div class="num">NEC<br><span style="font-size:13px">2023</span></div><div class="lbl">Edicion</div></div>
@@ -121,6 +121,14 @@
     <label class="topic-btn"><input type="checkbox" class="topic-check" value="MOT" checked> Motors & Generators <span class="badge" id="cnt-MOT">14</span></label>
     <label class="topic-btn"><input type="checkbox" class="topic-check" value="WM" checked> Wiring Methods <span class="badge" id="cnt-WM">14</span></label>
     <label class="topic-btn"><input type="checkbox" class="topic-check" value="EQP" checked> Equipment & Devices <span class="badge" id="cnt-EQP">10</span></label>
+  </div>
+  <div style="width:100%;max-width:340px;margin-bottom:20px;">
+    <div style="font-size:11px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;text-align:center;">Numero de preguntas</div>
+    <div style="display:flex;gap:10px;">
+      <button id="btn-mode-25" onclick="setMode(25)" style="flex:1;padding:12px;border-radius:12px;border:2px solid var(--red);background:var(--red);color:white;font-size:15px;font-weight:700;cursor:pointer;">25 ⚡</button>
+      <button id="btn-mode-50" onclick="setMode(50)" style="flex:1;padding:12px;border-radius:12px;border:2px solid rgba(255,255,255,0.2);background:transparent;color:white;font-size:15px;font-weight:700;cursor:pointer;">50</button>
+      <button id="btn-mode-100" onclick="setMode(100)" style="flex:1;padding:12px;border-radius:12px;border:2px solid rgba(255,255,255,0.2);background:transparent;color:white;font-size:15px;font-weight:700;cursor:pointer;">100</button>
+    </div>
   </div>
   <button class="btn-start" onclick="startExam()">Comenzar Examen ⚡</button>
 </div>
@@ -281,6 +289,16 @@ const ALL_QUESTIONS = [
 
 // ── STATE ──
 let examQuestions=[], currentIdx=0, answered=false, userAnswers=[], timerInterval=null, timeLeft=90;
+let selectedMode=25;
+function setMode(n){
+  selectedMode=n;
+  [25,50,100].forEach(m=>{
+    const btn=document.getElementById("btn-mode-"+m);
+    if(m===n){btn.style.background="var(--red)";btn.style.borderColor="var(--red)";}
+    else{btn.style.background="transparent";btn.style.borderColor="rgba(255,255,255,0.2)";}
+  });
+  document.getElementById("q-count-display").textContent=n;
+}
 const SECS=90;
 
 function getTopics(){ return [...document.querySelectorAll('.topic-check:checked')].map(c=>c.value); }
@@ -288,7 +306,8 @@ function getTopics(){ return [...document.querySelectorAll('.topic-check:checked
 function startExam(){
   const topics=getTopics();
   if(!topics.length){alert('Selecciona al menos un tema');return;}
-  examQuestions=ALL_QUESTIONS.filter(q=>topics.includes(q.topic)).sort(()=>Math.random()-0.5);
+  const filtered=ALL_QUESTIONS.filter(q=>topics.includes(q.topic)).sort(()=>Math.random()-0.5);
+  examQuestions=filtered.slice(0,selectedMode);
   document.getElementById('q-total').textContent=examQuestions.length;
   currentIdx=0; userAnswers=[];
   showScreen('exam-screen');
@@ -424,7 +443,8 @@ function showScreen(id){
 function updateCount(){
   const topics=getTopics();
   const cnt=ALL_QUESTIONS.filter(q=>topics.includes(q.topic)).length;
-  document.getElementById('q-count-display').textContent=cnt;
+  const max25=Math.min(cnt,25);
+  document.getElementById('q-count-display').textContent=max25;
 }
 
 document.querySelectorAll('.topic-check').forEach(c=>c.addEventListener('change',updateCount));
